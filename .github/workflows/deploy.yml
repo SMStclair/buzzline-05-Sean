@@ -1,0 +1,80 @@
+name: Kafka Producer and Consumer (Limited) Deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    - cron: "0 10,14,18 * * 1-5"  # Runs at 10 AM, 2 PM, 6 PM (Mon-Fri)
+
+jobs:
+  kafka-test:
+    runs-on: ubuntu-latest
+
+    services:
+      zookeeper:
+        image: wurstmeister/zookeeper:latest
+        ports:
+          - 2181:2181
+
+      kafka:
+        image: wurstmeister/kafka:latest
+        ports:
+          - 9092:9092
+        env:
+          KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+          KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+          KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+          KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+
+    steps:
+    - name: Set Kafka Broker Address
+      run: |
+        echo "KAFKA_BROKER_ADDRESS=127.0.0.1:9092" >> $GITHUB_ENV
+        echo "KAFKA_BROKER_ADDRESS_LOCAL=localhost:9092" >> $GITHUB_ENV
+        echo "KAFKA_BROKER_ADDRESS_DOCKER=kafka:9092" >> $GITHUB_ENV
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python3 -m venv .venv
+        source .venv/bin/activate
+        python3 -m pip install --upgrade pip setuptools wheel
+        python3 -m pip install --upgrade -r requirements.txt
+        python3 -m pip list  
+
+    - name: Wait for Kafka to be Ready
+      run: |
+        echo "Waiting for Kafka to be fully up..."
+        for i in {1..20}; do
+          nc -zv kafka 9092 && echo "Kafka is ready." && break
+          echo "Waiting for Kafka to start ($i/20)..."
+          sleep 5
+        done
+
+    - name: Run Kafka Producer and Consumer Concurrently
+      run: |
+        source .venv/bin/activate
+        export PYTHONPATH="$PYTHONPATH:$(pwd)"  # Local imports
+
+        # Start producer in the background (& means run asynchronously)
+        timeout 20m python3 producers/producer_case.py & 
+        
+        # Start consumer and try different Kafka broker addresses in order
+        for broker in "$KAFKA_BROKER_ADDRESS" "$KAFKA_BROKER_ADDRESS_LOCAL" "$KAFKA_BROKER_ADDRESS_DOCKER"; do
+          echo "Trying consumer with Kafka broker: $broker"
+          export KAFKA_BROKER=$broker
+          timeout 20m python3 consumers/kafka_consumer_case.py && break || echo "Failed with broker: $broker"
+        done
+        
+        # Ensure GitHub Actions waits for both processes to complete
+        wait
