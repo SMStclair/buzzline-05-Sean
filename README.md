@@ -96,17 +96,17 @@ Use the commands below to activate .venv, and start the consumer.
 Windows:
 ```shell
 .venv\Scripts\activate
-py -m consumers.kafka_consumer_case
+py -m consumers.consumer_Sean
 OR
-py -m consumers.file_consumer_case
+py -m consumers.consumer_Sean
 ```
 
 Mac/Linux:
 ```zsh
 source .venv/bin/activate
-python3 -m consumers.kafka_consumer_case
+python3 -m consumers.consumer_Sean
 OR
-python3 -m consumers.file_consumer_case
+python3 -m consumers.consumer_Sean
 ```
 
 ---
@@ -158,29 +158,5 @@ What files are in the consumers folder?
 
 ---
 
-## Explorations
-
-- Did you run the kafka consumer or the live file consumer? Why?
-- Can you use the examples to add a database to your own streaming applications? 
-- What parts are most interesting to you?
-- What parts are most challenging? 
-
----
-
-## Later Work Sessions
-When resuming work on this project:
-1. Open the folder in VS Code. 
-2. Open a terminal and start the Zookeeper service. If Windows, remember to start wsl. 
-3. Open a terminal and start the Kafka service. If Windows, remember to start wsl. 
-4. Open a terminal to start the producer. Remember to activate your local project virtual environment (.env).
-5. Open a terminal to start the consumer. Remember to activate your local project virtual environment (.env).
-
-## Save Space
-To save disk space, you can delete the .venv folder when not actively working on this project.
-You can always recreate it, activate it, and reinstall the necessary packages later. 
-Managing Python virtual environments is a valuable skill. 
-
-## License
-This project is licensed under the MIT License as an example project. 
-You are encouraged to fork, copy, explore, and modify the code as you like. 
-See the [LICENSE](LICENSE.txt) file for more.
+## Overall Thoughts after Completion
+The goal was to gather sentiment analysis data of messages with the keyword 'game' and create an updating chart of the average. I did not manage to get the data to produce a chart, but the output logs did update to show average over time. 
