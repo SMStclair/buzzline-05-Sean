@@ -159,6 +159,17 @@ def get_mongodb_collection() -> str:
     logger.info(f"MONGODB_COLLECTION: {collection}")
     return collection
 
+def get_mongo_uri() -> str:
+    """
+    Get MongoDB URI from environment variable.
+    Returns:
+        str: MongoDB URI.
+    """
+    mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017")  # Default to localhost if not set
+    if not mongo_uri:
+        raise ValueError("MONGO_URI environment variable not set.")
+    return mongo_uri
+
 
 #####################################
 # Conditional Execution
